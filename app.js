@@ -216,7 +216,7 @@ function switchTab(tabName) {
 
 // 显示欢迎页面
 function showWelcomeSection() {
-    const sections = ['profileSection', 'interviewSection', 'predictionSection', 'dashboardSection'];
+    const sections = ['profileSection', 'interviewSection', 'predictionSection', 'dashboardSection', 'analysisSection'];
     sections.forEach(s => document.getElementById(s).classList.add('hidden'));
     document.getElementById('welcomeSection').classList.remove('hidden');
 }
@@ -1002,6 +1002,23 @@ function getSchoolTierText(tier) {
     return texts[tier] || '未设置';
 }
 
+// 获取院校层次显示文本
+function getSchoolTierDisplay(tier) {
+    const texts = {
+        'tier1': '985/211顶尖',
+        'tier1_5': '211重点',
+        'tier2': '一本',
+        'tier3': '普通本科',
+        'qs_top10': '海外 QS Top 10',
+        'qs_11_50': '海外 QS 11-50',
+        'qs_51_100': '海外 QS 51-100',
+        'qs_101_200': '海外 QS 101-200',
+        'qs_201_500': '海外 QS 201-500',
+        'qs_500_plus': '海外 QS 500+'
+    };
+    return texts[tier] || '未设置';
+}
+
 // 保存到本地存储
 function saveToStorage() {
     localStorage.setItem('offerAIState', JSON.stringify({
@@ -1057,13 +1074,61 @@ console.log('功能: 候选人背景收集 · 面试记录录入 · AI offer预�
 
 // ========== Regression Analysis 功能 ==========
 
+// 用户自定义数据存储
+let customUserData = {
+    gpa: 3.5,
+    schoolTier: 'tier1',
+    internshipCount: 1,
+    interviewScore: 70
+};
+
 function showAnalysisSection() {
     document.getElementById('analysisSection').classList.remove('hidden');
     
-    // 默认执行一次分析
+    // 从表单获取用户数据
+    loadUserDataFromForm();
+    
+    // 填充用户数据到表单
+    populateUserDataForm();
+    
+    // 执行一次分析
     setTimeout(() => {
         runRegressionAnalysis();
     }, 100);
+}
+
+// 从表单加载用户数据
+function loadUserDataFromForm() {
+    const gpa = parseFloat(document.getElementById('userGPA')?.value) || 3.5;
+    const schoolTier = document.getElementById('userSchoolTier')?.value || 'tier1';
+    const internshipCount = parseInt(document.getElementById('userInternshipCount')?.value) || 1;
+    const interviewScore = parseInt(document.getElementById('userInterviewScore')?.value) || 70;
+    
+    customUserData = { gpa, schoolTier, internshipCount, interviewScore };
+}
+
+// 填充用户数据到表单
+function populateUserDataForm() {
+    const profile = appState.profile;
+    
+    // 如果有保存的个人资料，使用个人资料数据
+    if (profile.name) {
+        document.getElementById('userGPA').value = customUserData.gpa;
+        document.getElementById('userSchoolTier').value = customUserData.schoolTier;
+        document.getElementById('userInternshipCount').value = customUserData.internshipCount;
+        document.getElementById('userInterviewScore').value = customUserData.interviewScore;
+    }
+}
+
+// 更新分析图表（使用用户输入的数据）
+function updateAnalysisWithUserData() {
+    // 获取用户输入的数据
+    loadUserDataFromForm();
+    
+    // 重新运行分析
+    runRegressionAnalysis();
+    
+    showToast('图表已更新！', 'success');
 }
 
 function runRegressionAnalysis() {
@@ -1093,45 +1158,17 @@ function generateRegressionData() {
         userInterviewScore: null
     };
     
-    // 获取用户真实数据
-    const profile = appState.profile;
-    const interviews = appState.interviews;
+    // 获取用户自定义数据（优先使用用户输入的值）
+    const userGPA = customUserData.gpa || 3.5;
+    const userSchoolTier = customUserData.schoolTier || 'tier1';
+    const userInternship = customUserData.internshipCount || 1;
+    const userInterviewScore = customUserData.interviewScore || 70;
     
-    // 计算用户平均面试得分
-    let userInterviewAvg = 70;
-    if (interviews.length > 0) {
-        userInterviewAvg = interviews.reduce((sum, i) => sum + calculateInterviewScore(i), 0) / interviews.length;
-    }
-    
-    // 用户各项指标
-    data.userInterviewScore = userInterviewAvg;
-    
-    // 根据院校计算用户GPA估算值
-    const schoolToGPA = {
-        'tier1': 3.6,
-        'tier1_5': 3.4,
-        'tier2': 3.2,
-        'tier3': 3.0
-    };
-    data.userGPA = schoolToGPA[profile.schoolTier] || 3.2;
-    
-    // 用户院校层次值
-    const schoolTierValues = {
-        'tier1': 1,
-        'tier1_5': 2,
-        'tier2': 3,
-        'tier3': 4,
-        'qs_top10': 0.5,
-        'qs_11_50': 1,
-        'qs_51_100': 1.5,
-        'qs_101_200': 2,
-        'qs_201_500': 2.5,
-        'qs_500_plus': 3
-    };
-    data.userSchoolTier = schoolTierValues[profile.schoolTier] || 3;
-    
-    // 用户实习值
-    data.userInternship = profile.hasInternship ? Math.min(profile.internshipCount, 4) : 0;
+    // 用户各项指标（用于图表标记）
+    data.userInterviewScore = userInterviewScore;
+    data.userGPA = userGPA;
+    data.userSchoolTier = userSchoolTier;
+    data.userInternship = userInternship;
     
     // 生成500条模拟数据 - 确保有明显的线性关系
     for (let i = 0; i < 500; i++) {
@@ -1503,15 +1540,20 @@ function calculateRegressionMetrics(data) {
     const profile = appState.profile;
     let interpretation = '';
     
-    // 基于用户背景给出个性化解读
-    const profileScore = calculateProfileScore(profile);
+    // 基于用户自定义数据计算综合得分
+    const userComposite = (
+        (customUserData.gpa - 2.5) * 10 +
+        (5 - data.userSchoolTier) * 5 +
+        customUserData.internshipCount * 5 +
+        customUserData.interviewScore * 0.2
+    );
     
-    if (profileScore >= 75) {
-        interpretation = '根据你的背景分析，你具备较强的竞争力！';
-    } else if (profileScore >= 60) {
-        interpretation = '你的背景具备一定竞争力，继续保持优势。';
+    if (userComposite >= 65) {
+        interpretation = '根据你的数据分析，你具备较强的竞争力！';
+    } else if (userComposite >= 45) {
+        interpretation = '你的数据具备一定竞争力，继续保持优势。';
     } else {
-        interpretation = '建议提升面试表现和实习经历以增强竞争力。';
+        interpretation = '建议提升各维度数据以增强竞争力。';
     }
     
     // 添加具体因素分析
@@ -1530,18 +1572,12 @@ function calculateRegressionMetrics(data) {
         interpretation += `\n\n${analysisVarText[analysisVar]}与Offer获取的相关性较弱，其他因素可能更重要。`;
     }
     
-    // 添加院校信息
-    if (profile.isOverseas) {
-        const qsText = {
-            'qs_top10': 'Top 10',
-            'qs_11_50': '11-50',
-            'qs_51_100': '51-100',
-            'qs_101_200': '101-200',
-            'qs_201_500': '201-500',
-            'qs_500_plus': '500+'
-        };
-        interpretation += `\n\n你的海外院校背景（QS ${qsText[profile.schoolTier]}）对申请有显著加成。`;
-    }
+    // 添加用户当前数据分析
+    interpretation += `\n\n📊 你的数据概览：`;
+    interpretation += `\n• GPA: ${customUserData.gpa}`;
+    interpretation += `\n• 院校: ${getSchoolTierDisplay(customUserData.schoolTier)}`;
+    interpretation += `\n• 实习: ${customUserData.internshipCount}段`;
+    interpretation += `\n• 面试得分: ${customUserData.interviewScore}`;
     
     document.getElementById('interpretationText').textContent = interpretation;
 }
