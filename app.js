@@ -7,12 +7,34 @@ const appState = {
         grade: '',
         majorCategory: '',
         schoolTier: '',
+        qsRank: null, // 新增：QS排名
+        isOverseas: false, // 新增：是否海外院校
         hasInternship: false,
         internshipCount: 0,
         certCount: 0
     },
     interviews: [],
     predictions: []
+};
+
+// QS排名权重映射（QS越低越好）
+const qsWeights = {
+    'qs_top10': 0.30,     // QS Top 10: 30分
+    'qs_11_50': 0.22,     // QS 11-50: 22分
+    'qs_51_100': 0.18,    // QS 51-100: 18分
+    'qs_101_200': 0.12,   // QS 101-200: 12分
+    'qs_201_500': 0.05,   // QS 201-500: 5分
+    'qs_500_plus': 0      // QS 500+: 0分
+};
+
+// QS排名分数映射
+const qsScores = {
+    'qs_top10': 10,
+    'qs_11_50': 30,
+    'qs_51_100': 75,
+    'qs_101_200': 150,
+    'qs_201_500': 350,
+    'qs_500_plus': 600
 };
 
 // 知名公司数据库
@@ -93,6 +115,31 @@ function setupEventListeners() {
         });
     });
 
+    // 海外院校切换
+    const schoolTierSelect = document.getElementById('schoolTier');
+    if (schoolTierSelect) {
+        schoolTierSelect.addEventListener('change', (e) => {
+            const qsRankGroup = document.getElementById('qsRankGroup');
+            const selectedValue = e.target.value;
+            
+            // 检查是否选择海外院校
+            const isOverseas = selectedValue && selectedValue.startsWith('qs_');
+            
+            if (qsRankGroup) {
+                if (isOverseas) {
+                    qsRankGroup.style.display = 'block';
+                    // 根据选择设置默认QS排名
+                    const qsRankSelect = document.getElementById('qsRank');
+                    if (qsRankSelect) {
+                        qsRankSelect.value = String(qsScores[selectedValue] || '');
+                    }
+                } else {
+                    qsRankGroup.style.display = 'none';
+                }
+            }
+        });
+    }
+
     // 模态框点击外部关闭
     const modal = document.getElementById('interviewModal');
     modal.addEventListener('click', (e) => {
@@ -140,7 +187,7 @@ function switchTab(tabName) {
     });
 
     // 隐藏所有区块
-    const sections = ['welcomeSection', 'profileSection', 'interviewSection', 'predictionSection', 'dashboardSection'];
+    const sections = ['welcomeSection', 'profileSection', 'interviewSection', 'predictionSection', 'dashboardSection', 'analysisSection'];
     sections.forEach(section => {
         document.getElementById(section).classList.add('hidden');
     });
@@ -159,6 +206,9 @@ function switchTab(tabName) {
             break;
         case 'profile':
             showProfileTab();
+            break;
+        case 'analysis':
+            showAnalysisSection();
             break;
     }
 }
@@ -184,6 +234,7 @@ function saveProfile() {
     const grade = document.getElementById('grade').value;
     const majorCategory = document.getElementById('majorCategory').value;
     const schoolTier = document.getElementById('schoolTier').value;
+    const qsRank = document.getElementById('qsRank')?.value ? parseInt(document.getElementById('qsRank').value) : null;
     const hasInternship = document.querySelector('input[name="hasInternship"]:checked')?.value === 'yes';
     const internshipCount = parseInt(document.getElementById('internshipCount').value) || 0;
     const certCount = parseInt(document.getElementById('certCount').value);
@@ -206,6 +257,13 @@ function saveProfile() {
         return;
     }
 
+    // 检查海外院校是否选择了QS排名
+    const isOverseas = schoolTier && schoolTier.startsWith('qs_');
+    if (isOverseas && !qsRank) {
+        showToast('请选择具体的QS排名', 'error');
+        return;
+    }
+
     // 保存资料
     appState.profile = {
         name,
@@ -213,6 +271,8 @@ function saveProfile() {
         grade,
         majorCategory,
         schoolTier,
+        qsRank,
+        isOverseas,
         hasInternship,
         internshipCount,
         certCount
@@ -559,7 +619,13 @@ function calculateProfileScore(profile) {
         'tier2': 10,
         'tier3': 0
     };
-    score += schoolBonus[profile.schoolTier] || 0;
+    
+    // 海外院校加成（基于QS排名）
+    if (profile.isOverseas && profile.schoolTier) {
+        score += qsWeights[profile.schoolTier] * 100 || 0;
+    } else {
+        score += schoolBonus[profile.schoolTier] || 0;
+    }
     
     // 实习加成（按段数计算）
     if (profile.hasInternship && profile.internshipCount > 0) {
@@ -940,10 +1006,32 @@ function showProfileTab() {
                     <label>院校层次</label>
                     <select class="form-input" id="schoolTier">
                         <option value="">请选择院校层次</option>
-                        <option value="tier1">985/211顶尖院校</option>
-                        <option value="tier1_5">211重点院校</option>
-                        <option value="tier2">一本院校</option>
-                        <option value="tier3">二本/普通本科</option>
+                        <optgroup label="🇨🇳 国内院校">
+                            <option value="tier1">985/211顶尖院校</option>
+                            <option value="tier1_5">211重点院校</option>
+                            <option value="tier2">一本院校</option>
+                            <option value="tier3">二本/普通本科</option>
+                        </optgroup>
+                        <optgroup label="🌍 海外院校">
+                            <option value="qs_top10">海外 QS Top 10</option>
+                            <option value="qs_11_50">海外 QS 11-50</option>
+                            <option value="qs_51_100">海外 QS 51-100</option>
+                            <option value="qs_101_200">海外 QS 101-200</option>
+                            <option value="qs_201_500">海外 QS 201-500</option>
+                            <option value="qs_500_plus">海外 QS 500+</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="form-group" id="qsRankGroup" style="display: none;">
+                    <label>QS排名</label>
+                    <select class="form-input" id="qsRank">
+                        <option value="">请选择具体QS排名</option>
+                        <option value="5">QS 1-10</option>
+                        <option value="30">QS 11-50</option>
+                        <option value="75">QS 51-100</option>
+                        <option value="150">QS 101-200</option>
+                        <option value="350">QS 201-500</option>
+                        <option value="600">QS 500+</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1200,4 +1288,386 @@ window.OfferAIApp = {
 };
 
 console.log('offerME - 春招offer预测系统已就绪');
-console.log('功能: 候选人背景收集 · 面试记录录入 · AI offer预测');
+console.log('功能: 候选人背景收集 · 面试记录录入 · AI offer预测 · Regression分析');
+
+// ========== Regression Analysis 功能 ==========
+
+function showAnalysisSection() {
+    document.getElementById('analysisSection').classList.remove('hidden');
+    
+    // 默认执行一次分析
+    setTimeout(() => {
+        runRegressionAnalysis();
+    }, 100);
+}
+
+function runRegressionAnalysis() {
+    // 生成模拟数据进行回归分析
+    const data = generateRegressionData();
+    
+    // 绘制主回归图
+    drawRegressionChart(data);
+    
+    // 绘制Offer获取率图表
+    drawOfferRateChart(data);
+    
+    // 计算并显示统计指标
+    calculateRegressionMetrics(data);
+}
+
+function generateRegressionData() {
+    const data = {
+        gpa: [],
+        schoolTier: [],
+        internship: [],
+        offerResult: [],
+        qsRank: []
+    };
+    
+    // 基于用户数据生成相关数据点
+    const profile = appState.profile;
+    
+    // 生成200条模拟数据
+    for (let i = 0; i < 200; i++) {
+        // GPA: 2.5 - 4.0
+        const gpa = 2.5 + Math.random() * 1.5;
+        data.gpa.push(gpa);
+        
+        // 院校层次 (0-3: 国内, 4-9: 海外)
+        const schoolTierVal = profile.isOverseas ? 4 + Math.random() * 5 : Math.random() * 3;
+        data.schoolTier.push(schoolTierVal);
+        
+        // 实习经验 (0-4)
+        const internshipVal = profile.hasInternship ? 
+            Math.min(profile.internshipCount, 4) + (Math.random() - 0.5) * 2 : 
+            Math.random() * 2;
+        data.internship.push(Math.max(0, Math.min(4, Math.round(internshipVal))));
+        
+        // QS排名
+        const qsVal = profile.qsRank || 200;
+        data.qsRank.push(qsVal + (Math.random() - 0.5) * 100);
+        
+        // Offer结果 (基于因素计算)
+        let offerProb = 0;
+        offerProb += (gpa - 2.5) * 0.2; // GPA影响
+        offerProb += data.schoolTier[i] * 0.05; // 院校影响
+        offerProb += data.internship[i] * 0.1; // 实习影响
+        offerProb -= data.qsRank[i] * 0.0003; // QS排名影响
+        
+        offerProb += Math.random() * 0.3 - 0.15; // 随机噪声
+        
+        data.offerResult.push(offerProb > 0.5 ? 1 : 0);
+    }
+    
+    return data;
+}
+
+function drawRegressionChart(data) {
+    const canvas = document.getElementById('regressionChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    
+    canvas.width = rect.width;
+    canvas.height = 300;
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 50;
+    
+    // 清除画布
+    ctx.clearRect(0, 0, width, height);
+    
+    // 绘制背景
+    ctx.fillStyle = '#f8f9fa';
+    ctx.fillRect(0, 0, width, height);
+    
+    // 绘制数据点
+    const analysisVar = document.getElementById('analysisVariable')?.value || 'gpa';
+    
+    let xData, yData, xLabel, yLabel, title;
+    
+    switch(analysisVar) {
+        case 'gpa':
+            xData = data.gpa;
+            yData = data.offerResult;
+            xLabel = 'GPA';
+            yLabel = 'Offer获取';
+            title = 'GPA vs Offer获取率回归分析';
+            break;
+        case 'school':
+            xData = data.schoolTier;
+            yData = data.offerResult;
+            xLabel = '院校层次';
+            yLabel = 'Offer获取';
+            title = '院校层次 vs Offer获取率回归分析';
+            break;
+        case 'internship':
+            xData = data.internship;
+            yData = data.offerResult;
+            xLabel = '实习经验';
+            yLabel = 'Offer获取';
+            title = '实习经验 vs Offer获取率回归分析';
+            break;
+        default:
+            xData = data.gpa;
+            yData = data.offerResult;
+            xLabel = '综合评分';
+            yLabel = 'Offer获取';
+            title = '综合因素 vs Offer获取率回归分析';
+    }
+    
+    // 归一化x坐标
+    const xMin = Math.min(...xData);
+    const xMax = Math.max(...xData);
+    const xRange = xMax - xMin || 1;
+    
+    // 绘制散点
+    ctx.fillStyle = 'rgba(52, 152, 219, 0.6)';
+    for (let i = 0; i < xData.length; i++) {
+        const x = padding + ((xData[i] - xMin) / xRange) * (width - 2 * padding);
+        const y = height - padding - yData[i] * (height - 2 * padding);
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    // 计算线性回归
+    const regression = calculateLinearRegression(xData, yData);
+    
+    // 绘制回归线
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    
+    const x1 = padding;
+    const y1 = height - padding - regression.slope * ((xMin) * (height - 2 * padding) / xRange) - regression.intercept * (height - 2 * padding);
+    const x2 = width - padding;
+    const y2 = height - padding - regression.slope * ((xMax) * (height - 2 * padding) / xRange) - regression.intercept * (height - 2 * padding);
+    
+    ctx.moveTo(padding, height - padding - ((regression.slope * xMin + regression.intercept) * (height - 2 * padding)));
+    ctx.lineTo(width - padding, height - padding - ((regression.slope * xMax + regression.intercept) * (height - 2 * padding)));
+    ctx.stroke();
+    
+    // 绘制坐标轴
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(padding, height - padding);
+    ctx.lineTo(width - padding, height - padding);
+    ctx.moveTo(padding, padding);
+    ctx.lineTo(padding, height - padding);
+    ctx.stroke();
+    
+    // 绘制标签
+    ctx.fillStyle = '#333';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(xLabel, width / 2, height - 10);
+    
+    ctx.save();
+    ctx.translate(15, height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(yLabel, 0, 0);
+    ctx.restore();
+    
+    // 绘制标题
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText(title, width / 2, 25);
+    
+    // 更新回归方程显示
+    const equation = `Offer = ${regression.slope.toFixed(4)} × ${xLabel} + ${regression.intercept.toFixed(4)}`;
+    document.getElementById('regressionEquation').textContent = equation;
+}
+
+function calculateLinearRegression(x, y) {
+    const n = x.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+    
+    for (let i = 0; i < n; i++) {
+        sumX += x[i];
+        sumY += y[i];
+        sumXY += x[i] * y[i];
+        sumX2 += x[i] * x[i];
+    }
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    return { slope, intercept };
+}
+
+function drawOfferRateChart(data) {
+    const canvas = document.getElementById('offerRateChart');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    
+    canvas.width = rect.width;
+    canvas.height = 250;
+    
+    const width = canvas.width;
+    const height = canvas.height;
+    const padding = 50;
+    
+    // 清除画布
+    ctx.clearRect(0, 0, width, height);
+    
+    // 计算各因素区间的Offer率
+    const gpaRanges = [
+        { label: '2.5-2.8', min: 2.5, max: 2.8 },
+        { label: '2.8-3.2', min: 2.8, max: 3.2 },
+        { label: '3.2-3.5', min: 3.2, max: 3.5 },
+        { label: '3.5-3.8', min: 3.5, max: 3.8 },
+        { label: '3.8-4.0', min: 3.8, max: 4.0 }
+    ];
+    
+    const offerRates = gpaRanges.map(range => {
+        const filtered = data.gpa.map((g, i) => g >= range.min && g < range.max ? data.offerResult[i] : null).filter(v => v !== null);
+        return filtered.length > 0 ? filtered.reduce((a, b) => a + b, 0) / filtered.length : 0;
+    });
+    
+    const barWidth = (width - 2 * padding) / offerRates.length - 20;
+    const barSpacing = 20;
+    
+    // 绘制标题
+    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.fillText('不同GPA区间的Offer获取率', width / 2, 25);
+    
+    // 绘制条形
+    offerRates.forEach((rate, i) => {
+        const x = padding + i * (barWidth + barSpacing);
+        const barHeight = rate * (height - 2 * padding);
+        const y = height - padding - barHeight;
+        
+        // 渐变色
+        const gradient = ctx.createLinearGradient(x, y, x, height - padding);
+        gradient.addColorStop(0, rate > 0.5 ? '#27ae60' : rate > 0.3 ? '#f39c12' : '#e74c3c');
+        gradient.addColorStop(1, rate > 0.5 ? '#2ecc71' : rate > 0.3 ? '#f1c40f' : '#e67e22');
+        
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x, y, barWidth, barHeight);
+        
+        // 显示百分比
+        ctx.fillStyle = '#333';
+        ctx.font = 'bold 12px Arial';
+        ctx.fillText(`${(rate * 100).toFixed(1)}%`, x + barWidth / 2, y - 5);
+        
+        // 显示标签
+        ctx.font = '11px Arial';
+        ctx.fillText(gpaRanges[i].label, x + barWidth / 2, height - padding + 15);
+    });
+    
+    // 绘制基线
+    ctx.strokeStyle = '#ddd';
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(padding, height - padding - 0.5 * (height - 2 * padding));
+    ctx.lineTo(width - padding, height - padding - 0.5 * (height - 2 * padding));
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+function calculateRegressionMetrics(data) {
+    // 计算相关系数
+    const n = data.gpa.length;
+    
+    // GPA vs Offer 相关系数
+    const gpaCorrelation = calculateCorrelation(data.gpa, data.offerResult);
+    document.getElementById('correlationValue').textContent = gpaCorrelation.toFixed(4);
+    
+    // R² 计算
+    const gpaR2 = calculateR2(data.gpa, data.offerResult);
+    document.getElementById('r2Score').textContent = gpaR2.toFixed(4);
+    
+    // RMSE 计算
+    const rmse = calculateRMSE(data.gpa, data.offerResult);
+    document.getElementById('rmseValue').textContent = rmse.toFixed(4);
+    
+    // 更新解读
+    let interpretation = '';
+    
+    if (gpaCorrelation > 0.5) {
+        interpretation = `GPA与Offer获取呈正相关（r=${gpaCorrelation.toFixed(2)}），GPA越高获得Offer的概率越大。建议保持良好成绩。`;
+    } else if (gpaCorrelation > 0.2) {
+        interpretation = `GPA对Offer有一定正向影响，但不是决定性因素。除GPA外，实习经验、面试表现等也很重要。`;
+    } else {
+        interpretation = `GPA与Offer获取的相关性较弱。院校背景、实习经历、面试表现等因素可能更重要。`;
+    }
+    
+    if (appState.profile.isOverseas) {
+        interpretation += `你的海外院校背景（QS ${appState.profile.qsRank}）对申请有一定加成。`;
+    }
+    
+    document.getElementById('interpretationText').textContent = interpretation;
+}
+
+function calculateCorrelation(x, y) {
+    const n = x.length;
+    const sumX = x.reduce((a, b) => a + b, 0);
+    const sumY = y.reduce((a, b) => a + b, 0);
+    const sumXY = x.reduce((total, xi, i) => total + xi * y[i], 0);
+    const sumX2 = x.reduce((total, xi) => total + xi * xi, 0);
+    const sumY2 = y.reduce((total, yi) => total + yi * yi, 0);
+    
+    const numerator = n * sumXY - sumX * sumY;
+    const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+    
+    return denominator === 0 ? 0 : numerator / denominator;
+}
+
+function calculateR2(x, y) {
+    const regression = calculateLinearRegression(x, y);
+    const yMean = y.reduce((a, b) => a + b, 0) / y.length;
+    
+    let ssTot = 0, ssRes = 0;
+    for (let i = 0; i < x.length; i++) {
+        const yPred = regression.slope * x[i] + regression.intercept;
+        ssTot += Math.pow(y[i] - yMean, 2);
+        ssRes += Math.pow(y[i] - yPred, 2);
+    }
+    
+    return ssTot === 0 ? 0 : 1 - ssRes / ssTot;
+}
+
+function calculateRMSE(x, y) {
+    const regression = calculateLinearRegression(x, y);
+    
+    let mse = 0;
+    for (let i = 0; i < x.length; i++) {
+        const yPred = regression.slope * x[i] + regression.intercept;
+        mse += Math.pow(y[i] - yPred, 2);
+    }
+    
+    return Math.sqrt(mse / x.length);
+}
+
+// 更新 populateProfileForm 函数以支持QS排名
+const originalPopulateProfileForm = populateProfileForm;
+populateProfileForm = function() {
+    originalPopulateProfileForm();
+    
+    const profile = appState.profile;
+    
+    // 如果是海外院校，显示QS排名选择
+    if (profile.isOverseas && profile.schoolTier) {
+        const qsRankGroup = document.getElementById('qsRankGroup');
+        const qsRankSelect = document.getElementById('qsRank');
+        if (qsRankGroup && qsRankSelect) {
+            qsRankGroup.style.display = 'block';
+            qsRankSelect.value = profile.qsRank || '';
+        }
+    }
+};
+
+// 更新 startNew 函数
+const originalStartNew = startNew;
+startNew = function() {
+    originalStartNew();
+    appState.profile.qsRank = null;
+    appState.profile.isOverseas = false;
+};
