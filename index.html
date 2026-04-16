@@ -89,10 +89,44 @@
                         <label>院校层次</label>
                         <select class="form-input" id="schoolTier">
                             <option value="">请选择院校层次</option>
-                            <option value="tier1">985/211顶尖院校</option>
-                            <option value="tier1_5">211重点院校</option>
-                            <option value="tier2">一本院校</option>
-                            <option value="tier3">二本/普通本科</option>
+                            <optgroup label="🇨🇳 国内院校">
+                                <option value="tier1">985/211顶尖院校</option>
+                                <option value="tier1_5">211重点院校</option>
+                                <option value="tier2">一本院校</option>
+                                <option value="tier3">二本/普通本科</option>
+                            </optgroup>
+                            <optgroup label="🌍 海外院校">
+                                <option value="qs_top10">海外 QS Top 10</option>
+                                <option value="qs_11_50">海外 QS 11-50</option>
+                                <option value="qs_51_100">海外 QS 51-100</option>
+                                <option value="qs_101_200">海外 QS 101-200</option>
+                                <option value="qs_201_500">海外 QS 201-500</option>
+                                <option value="qs_500_plus">海外 QS 500+</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group" id="qsRankGroup" style="display: none;">
+                        <label>📊 QS排名</label>
+                        <select class="form-input" id="qsRank">
+                            <option value="">请选择具体QS排名</option>
+                            <optgroup label="QS Top 10">
+                                <option value="5">1-10</option>
+                            </optgroup>
+                            <optgroup label="QS 11-50">
+                                <option value="30">11-50</option>
+                            </optgroup>
+                            <optgroup label="QS 51-100">
+                                <option value="75">51-100</option>
+                            </optgroup>
+                            <optgroup label="QS 101-200">
+                                <option value="150">101-200</option>
+                            </optgroup>
+                            <optgroup label="QS 201-500">
+                                <option value="350">201-500</option>
+                            </optgroup>
+                            <optgroup label="QS 500+">
+                                <option value="600">500+</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div class="form-group">
@@ -238,6 +272,82 @@
                     </div>
                 </div>
             </section>
+
+            <!-- Regression Analysis Section -->
+            <section class="analysis-section hidden" id="analysisSection">
+                <div class="section-header">
+                    <h2>📈 Regression Analysis 可视化</h2>
+                    <span class="ai-badge">✨ 统计分析</span>
+                </div>
+                
+                <!-- Analysis Controls -->
+                <div class="analysis-controls">
+                    <div class="form-group">
+                        <label>回归类型</label>
+                        <select class="form-input" id="regressionType">
+                            <option value="linear">线性回归</option>
+                            <option value="polynomial">多项式回归</option>
+                            <option value="multiple">多元回归</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>分析变量</label>
+                        <select class="form-input" id="analysisVariable">
+                            <option value="gpa">GPA vs Offer</option>
+                            <option value="school">院校 vs Offer</option>
+                            <option value="internship">实习 vs Offer</option>
+                            <option value="combined">综合因素</option>
+                        </select>
+                    </div>
+                    <button class="action-btn primary" onclick="runRegressionAnalysis()">
+                        📊 执行分析
+                    </button>
+                </div>
+                
+                <!-- Regression Chart -->
+                <div class="regression-chart-container">
+                    <canvas id="regressionChart"></canvas>
+                </div>
+                
+                <!-- Analysis Results -->
+                <div class="analysis-results" id="analysisResults">
+                    <div class="result-card">
+                        <h4>📊 模型评估指标</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-box">
+                                <span class="metric-label">R² 决定系数</span>
+                                <span class="metric-value" id="r2Score">--</span>
+                            </div>
+                            <div class="metric-box">
+                                <span class="metric-label">RMSE</span>
+                                <span class="metric-value" id="rmseValue">--</span>
+                            </div>
+                            <div class="metric-box">
+                                <span class="metric-label">相关系数</span>
+                                <span class="metric-value" id="correlationValue">--</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <h4>📝 回归方程</h4>
+                        <div class="equation-display" id="regressionEquation">
+                            点击"执行分析"生成回归方程
+                        </div>
+                    </div>
+                    <div class="result-card">
+                        <h4>💡 解读</h4>
+                        <div class="interpretation-text" id="interpretationText">
+                            基于你的数据，分析各因素对offer获取的影响程度。
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Offer Rate Chart -->
+                <div class="offer-rate-section">
+                    <h3>📈 Offer获取率分析</h3>
+                    <canvas id="offerRateChart"></canvas>
+                </div>
+            </section>
         </main>
 
         <!-- Bottom Navigation -->
@@ -253,6 +363,10 @@
             <button class="nav-item" data-tab="profile" onclick="switchTab('profile')">
                 <span class="nav-icon">👤</span>
                 <span class="nav-label">我的</span>
+            </button>
+            <button class="nav-item" data-tab="analysis" onclick="switchTab('analysis')">
+                <span class="nav-icon">📈</span>
+                <span class="nav-label">分析</span>
             </button>
         </nav>
 
