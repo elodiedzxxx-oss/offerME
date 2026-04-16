@@ -280,16 +280,45 @@
                     <span class="ai-badge">✨ 统计分析</span>
                 </div>
                 
+                <!-- 用户自定义数据输入 -->
+                <div class="user-data-card">
+                    <h3>🎯 设置你的数据</h3>
+                    <p class="user-data-hint">输入你的数据，图表将实时更新显示你的位置</p>
+                    <div class="user-data-grid">
+                        <div class="form-group">
+                            <label>GPA (2.5-4.0)</label>
+                            <input type="number" class="form-input" id="userGPA" placeholder="如: 3.5" min="2.5" max="4.0" step="0.1" value="3.5">
+                        </div>
+                        <div class="form-group">
+                            <label>院校层次</label>
+                            <select class="form-input" id="userSchoolTier">
+                                <option value="tier1">985/211顶尖</option>
+                                <option value="tier1_5">211重点</option>
+                                <option value="tier2">一本</option>
+                                <option value="tier3">普通本科</option>
+                                <option value="qs_top10">海外 QS Top 10</option>
+                                <option value="qs_11_50">海外 QS 11-50</option>
+                                <option value="qs_51_100">海外 QS 51-100</option>
+                                <option value="qs_101_200">海外 QS 101-200</option>
+                                <option value="qs_201_500">海外 QS 201-500</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>实习段数</label>
+                            <input type="number" class="form-input" id="userInternshipCount" placeholder="如: 2" min="0" max="5" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label>面试得分 (0-100)</label>
+                            <input type="number" class="form-input" id="userInterviewScore" placeholder="如: 75" min="0" max="100" value="70">
+                        </div>
+                    </div>
+                    <button class="action-btn primary" onclick="updateAnalysisWithUserData()">
+                        🔄 更新图表
+                    </button>
+                </div>
+                
                 <!-- Analysis Controls -->
                 <div class="analysis-controls">
-                    <div class="form-group">
-                        <label>回归类型</label>
-                        <select class="form-input" id="regressionType">
-                            <option value="linear">线性回归</option>
-                            <option value="polynomial">多项式回归</option>
-                            <option value="multiple">多元回归</option>
-                        </select>
-                    </div>
                     <div class="form-group">
                         <label>分析变量</label>
                         <select class="form-input" id="analysisVariable">
