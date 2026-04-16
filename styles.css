@@ -1136,3 +1136,216 @@ body {
     color: var(--text-secondary);
     margin-top: 4px;
 }
+
+/* ========== Regression Analysis Section ========== */
+.analysis-section {
+    padding: 16px;
+}
+
+.analysis-section .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.analysis-section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* 用户数据输入卡片 */
+.user-data-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.user-data-card h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.user-data-card .user-data-hint {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.user-data-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.user-data-grid .form-group {
+    margin-bottom: 0;
+}
+
+.user-data-grid .form-group label {
+    color: white;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.user-data-grid .form-input {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+}
+
+.user-data-grid .form-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.user-data-grid .form-input option {
+    color: #333;
+    background: white;
+}
+
+.user-data-card .action-btn {
+    width: 100%;
+    background: white;
+    color: #667eea;
+    font-weight: 600;
+}
+
+.user-data-card .action-btn:hover {
+    background: #f0f0f0;
+}
+
+.analysis-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.analysis-controls .form-group {
+    flex: 1;
+    min-width: 140px;
+}
+
+.analysis-controls .action-btn {
+    height: 44px;
+    align-self: flex-end;
+}
+
+.regression-chart-container {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+}
+
+.regression-chart-container canvas {
+    width: 100%;
+    display: block;
+}
+
+.analysis-results {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.result-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.result-card h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.metric-box {
+    text-align: center;
+    padding: 12px 8px;
+    background: var(--background);
+    border-radius: 12px;
+}
+
+.metric-box .metric-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.metric-box .metric-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.equation-display {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    padding: 16px;
+    background: var(--background);
+    border-radius: 12px;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.interpretation-text {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.offer-rate-section {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+}
+
+.offer-rate-section h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+}
+
+.offer-rate-section canvas {
+    width: 100%;
+    display: block;
+}
+
+/* QS Rank Group */
+#qsRankGroup {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
