@@ -186,10 +186,11 @@ function switchTab(tabName) {
         }
     });
 
-    // 隐藏所有区块
+    // 隐藏所有主内容区块
     const sections = ['welcomeSection', 'profileSection', 'interviewSection', 'predictionSection', 'dashboardSection', 'analysisSection'];
     sections.forEach(section => {
-        document.getElementById(section).classList.add('hidden');
+        const el = document.getElementById(section);
+        if (el) el.classList.add('hidden');
     });
 
     // 显示对应区块
@@ -938,259 +939,23 @@ function renderHistoryList() {
 
 // 显示个人资料页
 function showProfileTab() {
-    const sections = ['welcomeSection', 'profileSection', 'interviewSection', 'predictionSection', 'dashboardSection'];
-    sections.forEach(s => document.getElementById(s).classList.add('hidden'));
+    // 隐藏其他区块
+    const sections = ['welcomeSection', 'interviewSection', 'predictionSection', 'dashboardSection', 'analysisSection'];
+    sections.forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.classList.add('hidden');
+    });
     
-    const mainContent = document.getElementById('mainContent');
-    
-    // 恢复原始HTML结构
-    mainContent.innerHTML = `
-        <!-- Welcome Section (Step 0) -->
-        <section class="welcome-section hidden" id="welcomeSection">
-            <div class="welcome-icon">✅</div>
-            <h1>欢迎使用 offerME</h1>
-            <p class="subtitle">AI驱动的春招offer预测<br>助你知己知彼，决胜春招</p>
-            <button class="action-btn primary large" onclick="showProfileSetup()">
-                开始预测之旅
-            </button>
-        </section>
-
-        <!-- Profile Setup Section (Step 1) -->
-        <section class="profile-section" id="profileSection">
-            <div class="section-header">
-                <h2>完善候选人背景</h2>
-                <span class="step-badge">1/3</span>
-            </div>
-            <div class="form-card">
-                <div class="form-group">
-                    <label>姓名</label>
-                    <input type="text" class="form-input" id="userName" placeholder="请输入你的姓名">
-                </div>
-                <div class="form-group">
-                    <label>学历层次</label>
-                    <select class="form-input" id="educationLevel">
-                        <option value="">请选择学历</option>
-                        <option value="bachelor">本科</option>
-                        <option value="master">硕士</option>
-                        <option value="phd">博士</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>就读年级</label>
-                    <select class="form-input" id="grade">
-                        <option value="">请选择年级</option>
-                        <option value="sophomore">大二</option>
-                        <option value="junior">大三</option>
-                        <option value="senior">大四</option>
-                        <option value="graduated">已毕业</option>
-                        <option value="master_year1">研一</option>
-                        <option value="master_year2">研二</option>
-                        <option value="phd_year1">博一</option>
-                        <option value="phd_year2">博二</option>
-                        <option value="phd_year3+">博三及以上</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>专业类别</label>
-                    <select class="form-input" id="majorCategory">
-                        <option value="">请选择专业类别</option>
-                        <option value="cs">计算机科学/软件工程</option>
-                        <option value="ee">电子信息工程</option>
-                        <option value="me">机械工程</option>
-                        <option value="business">商科/管理</option>
-                        <option value="finance">金融/经济</option>
-                        <option value="other">其他专业</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>院校层次</label>
-                    <select class="form-input" id="schoolTier">
-                        <option value="">请选择院校层次</option>
-                        <optgroup label="🇨🇳 国内院校">
-                            <option value="tier1">985/211顶尖院校</option>
-                            <option value="tier1_5">211重点院校</option>
-                            <option value="tier2">一本院校</option>
-                            <option value="tier3">二本/普通本科</option>
-                        </optgroup>
-                        <optgroup label="🌍 海外院校">
-                            <option value="qs_top10">海外 QS Top 10</option>
-                            <option value="qs_11_50">海外 QS 11-50</option>
-                            <option value="qs_51_100">海外 QS 51-100</option>
-                            <option value="qs_101_200">海外 QS 101-200</option>
-                            <option value="qs_201_500">海外 QS 201-500</option>
-                            <option value="qs_500_plus">海外 QS 500+</option>
-                        </optgroup>
-                    </select>
-                </div>
-                <div class="form-group" id="qsRankGroup" style="display: none;">
-                    <label>QS排名</label>
-                    <select class="form-input" id="qsRank">
-                        <option value="">请选择具体QS排名</option>
-                        <option value="5">QS 1-10</option>
-                        <option value="30">QS 11-50</option>
-                        <option value="75">QS 51-100</option>
-                        <option value="150">QS 101-200</option>
-                        <option value="350">QS 201-500</option>
-                        <option value="600">QS 500+</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>是否有实习经历</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="hasInternship" value="yes"> 是
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="hasInternship" value="no"> 否
-                        </label>
-                    </div>
-                </div>
-                <div class="form-group internship-duration hidden" id="internshipGroup">
-                    <label>实习段数</label>
-                    <select class="form-input" id="internshipCount">
-                        <option value="">请选择实习段数</option>
-                        <option value="0">还没有实习</option>
-                        <option value="1">1段实习</option>
-                        <option value="2">2段实习</option>
-                        <option value="3">3段实习</option>
-                        <option value="4">4段及以上</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>已获得的专业证书数量</label>
-                    <div class="slider-container">
-                        <input type="range" class="slider" id="certCount" min="0" max="10" value="0">
-                        <span class="slider-value" id="certCountValue">0</span>
-                    </div>
-                </div>
-                <button class="action-btn primary large" onclick="saveProfile()">
-                    保存并继续
-                </button>
-            </div>
-        </section>
-
-        <!-- Interview Input Section (Step 2) -->
-        <section class="interview-section hidden" id="interviewSection">
-            <div class="section-header">
-                <h2>录入面试信息</h2>
-                <span class="step-badge">2/3</span>
-            </div>
-            
-            <!-- Interview List -->
-            <div class="interview-list" id="interviewList">
-                <!-- Interview cards will be added here -->
-            </div>
-            
-            <!-- Add Interview Card -->
-            <div class="add-interview-card" id="addInterviewCard">
-                <button class="add-interview-btn" onclick="showAddInterviewModal()">
-                    <span class="add-icon">+</span>
-                    <span>添加新面试</span>
-                </button>
-            </div>
-
-            <button class="action-btn primary gradient-btn" onclick="generatePrediction()">
-                ✨ 生成预测结果
-            </button>
-        </section>
-
-        <!-- Prediction Results Section (Step 3) -->
-        <section class="prediction-section hidden" id="predictionSection">
-            <div class="section-header">
-                <h2>AI预测结果</h2>
-                <span class="step-badge">3/3</span>
-            </div>
-            
-            <!-- Main Prediction Card -->
-            <div class="prediction-main-card">
-                <div class="prediction-header">
-                    <span class="ai-badge">✨ AI Powered</span>
-                </div>
-                <div class="prediction-summary">
-                    <div class="offer-count-display">
-                        <span class="offer-count" id="predictedOfferCount">0</span>
-                        <span class="offer-unit">个offer</span>
-                    </div>
-                    <p class="prediction-text" id="predictionText">基于你的背景和面试表现，预测结果如下</p>
-                </div>
-            </div>
-
-            <!-- Detailed Predictions -->
-            <div class="detailed-predictions" id="detailedPredictions">
-                <!-- Company predictions will be added here -->
-            </div>
-
-            <!-- Interview Analysis -->
-            <div class="analysis-card">
-                <h3>📈 面试表现分析</h3>
-                <div class="analysis-content" id="analysisContent">
-                    <!-- Analysis will be added here -->
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="action-btn secondary" onclick="editInterviews()">
-                    编辑面试记录
-                </button>
-                <button class="action-btn primary" onclick="startNew()">
-                    开始新的预测
-                </button>
-            </div>
-        </section>
-
-        <!-- Dashboard View (Tab) -->
-        <section class="dashboard-section hidden" id="dashboardSection">
-            <div class="section-header">
-                <h2>数据概览</h2>
-            </div>
-            
-            <!-- Stats Cards -->
-            <div class="stats-section">
-                <div class="stat-card">
-                    <div class="stat-icon">📋</div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="totalInterviews">0</span>
-                        <span class="stat-label">面试总数</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🏢</div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="totalCompanies">0</span>
-                        <span class="stat-label">投递公司</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🎯</div>
-                    <div class="stat-info">
-                        <span class="stat-value" id="avgScore">0</span>
-                        <span class="stat-label">平均得分</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Interview History -->
-            <div class="history-section">
-                <h3>面试记录</h3>
-                <div class="history-list" id="historyList">
-                    <!-- History items will be added here -->
-                </div>
-            </div>
-        </section>
-    `;
-    
-    // 填充已有数据
-    populateProfileForm();
-    
-    // 重新设置事件监听器
-    setupEventListeners();
-    
-    // 初始化滑块
-    initSliders();
-    
-    // 渲染面试列表
-    if (appState.interviews.length > 0) {
-        renderInterviewList();
+    // 只显示 profileSection
+    const profileSection = document.getElementById('profileSection');
+    if (profileSection) {
+        profileSection.classList.remove('hidden');
+        // 填充已有数据
+        populateProfileForm();
+        // 重新设置事件监听器
+        setupEventListeners();
+        // 初始化滑块
+        initSliders();
     }
 }
 
@@ -1321,42 +1086,92 @@ function generateRegressionData() {
         schoolTier: [],
         internship: [],
         offerResult: [],
-        qsRank: []
+        interviewScore: [],
+        userGPA: null,
+        userSchoolTier: null,
+        userInternship: null,
+        userInterviewScore: null
     };
     
-    // 基于用户数据生成相关数据点
+    // 获取用户真实数据
     const profile = appState.profile;
+    const interviews = appState.interviews;
     
-    // 生成200条模拟数据
-    for (let i = 0; i < 200; i++) {
-        // GPA: 2.5 - 4.0
-        const gpa = 2.5 + Math.random() * 1.5;
-        data.gpa.push(gpa);
+    // 计算用户平均面试得分
+    let userInterviewAvg = 70;
+    if (interviews.length > 0) {
+        userInterviewAvg = interviews.reduce((sum, i) => sum + calculateInterviewScore(i), 0) / interviews.length;
+    }
+    
+    // 用户各项指标
+    data.userInterviewScore = userInterviewAvg;
+    
+    // 根据院校计算用户GPA估算值
+    const schoolToGPA = {
+        'tier1': 3.6,
+        'tier1_5': 3.4,
+        'tier2': 3.2,
+        'tier3': 3.0
+    };
+    data.userGPA = schoolToGPA[profile.schoolTier] || 3.2;
+    
+    // 用户院校层次值
+    const schoolTierValues = {
+        'tier1': 1,
+        'tier1_5': 2,
+        'tier2': 3,
+        'tier3': 4,
+        'qs_top10': 0.5,
+        'qs_11_50': 1,
+        'qs_51_100': 1.5,
+        'qs_101_200': 2,
+        'qs_201_500': 2.5,
+        'qs_500_plus': 3
+    };
+    data.userSchoolTier = schoolTierValues[profile.schoolTier] || 3;
+    
+    // 用户实习值
+    data.userInternship = profile.hasInternship ? Math.min(profile.internshipCount, 4) : 0;
+    
+    // 生成500条模拟数据 - 确保有明显的线性关系
+    for (let i = 0; i < 500; i++) {
+        // GPA: 2.5 - 4.0，添加趋势性
+        const baseGPA = 2.5 + (i / 500) * 1.5;
+        const gpa = baseGPA + (Math.random() - 0.5) * 0.3;
+        data.gpa.push(Math.min(4.0, Math.max(2.5, gpa)));
         
-        // 院校层次 (0-3: 国内, 4-9: 海外)
-        const schoolTierVal = profile.isOverseas ? 4 + Math.random() * 5 : Math.random() * 3;
-        data.schoolTier.push(schoolTierVal);
+        // 院校层次 (1-4: 越好越低)
+        const baseSchool = 1 + (i / 500) * 3;
+        const schoolTierVal = baseSchool + (Math.random() - 0.5) * 0.5;
+        data.schoolTier.push(Math.min(4.5, Math.max(0.5, schoolTierVal)));
         
         // 实习经验 (0-4)
-        const internshipVal = profile.hasInternship ? 
-            Math.min(profile.internshipCount, 4) + (Math.random() - 0.5) * 2 : 
-            Math.random() * 2;
-        data.internship.push(Math.max(0, Math.min(4, Math.round(internshipVal))));
+        const baseIntern = (i / 500) * 4;
+        const internVal = baseIntern + (Math.random() - 0.5) * 1;
+        data.internship.push(Math.max(0, Math.min(4, Math.round(internVal))));
         
-        // QS排名
-        const qsVal = profile.qsRank || 200;
-        data.qsRank.push(qsVal + (Math.random() - 0.5) * 100);
+        // 面试得分 (40-95)
+        const baseScore = 40 + (i / 500) * 55;
+        const scoreVal = baseScore + (Math.random() - 0.5) * 15;
+        data.interviewScore.push(Math.min(100, Math.max(40, scoreVal)));
         
-        // Offer结果 (基于因素计算)
-        let offerProb = 0;
-        offerProb += (gpa - 2.5) * 0.2; // GPA影响
-        offerProb += data.schoolTier[i] * 0.05; // 院校影响
-        offerProb += data.internship[i] * 0.1; // 实习影响
-        offerProb -= data.qsRank[i] * 0.0003; // QS排名影响
+        // Offer结果 - 基于综合因素计算，更强的线性关系
+        const g = data.gpa[i];
+        const s = data.schoolTier[i];
+        const intern = data.internship[i];
+        const score = data.interviewScore[i];
         
-        offerProb += Math.random() * 0.3 - 0.15; // 随机噪声
+        // 综合得分
+        const composite = (g - 2.5) * 15 +      // GPA贡献
+                          (5 - s) * 5 +           // 院校贡献（越好越高）
+                          intern * 4 +            // 实习贡献
+                          (score - 40) * 0.3;     // 面试得分贡献
         
-        data.offerResult.push(offerProb > 0.5 ? 1 : 0);
+        // 转换为0-1的概率
+        const offerProb = 1 / (1 + Math.exp(-(composite - 75) / 15));
+        
+        // 添加少量噪声
+        data.offerResult.push(Math.random() < offerProb ? 1 : 0);
     }
     
     return data;
@@ -1383,39 +1198,51 @@ function drawRegressionChart(data) {
     ctx.fillStyle = '#f8f9fa';
     ctx.fillRect(0, 0, width, height);
     
-    // 绘制数据点
-    const analysisVar = document.getElementById('analysisVariable')?.value || 'gpa';
+    // 分析变量选择
+    const analysisVar = document.getElementById('analysisVariable')?.value || 'combined';
     
-    let xData, yData, xLabel, yLabel, title;
+    let xData, yData, xLabel, yLabel, title, userX;
     
     switch(analysisVar) {
         case 'gpa':
             xData = data.gpa;
             yData = data.offerResult;
             xLabel = 'GPA';
-            yLabel = 'Offer获取';
+            yLabel = 'Offer获取率';
             title = 'GPA vs Offer获取率回归分析';
+            userX = data.userGPA;
             break;
         case 'school':
             xData = data.schoolTier;
             yData = data.offerResult;
-            xLabel = '院校层次';
-            yLabel = 'Offer获取';
+            xLabel = '院校层次 (越小越好)';
+            yLabel = 'Offer获取率';
             title = '院校层次 vs Offer获取率回归分析';
+            userX = data.userSchoolTier;
             break;
         case 'internship':
             xData = data.internship;
             yData = data.offerResult;
-            xLabel = '实习经验';
-            yLabel = 'Offer获取';
+            xLabel = '实习段数';
+            yLabel = 'Offer获取率';
             title = '实习经验 vs Offer获取率回归分析';
+            userX = data.userInternship;
+            break;
+        case 'combined':
+            xData = data.interviewScore;
+            yData = data.offerResult;
+            xLabel = '面试得分';
+            yLabel = 'Offer获取率';
+            title = '面试得分 vs Offer获取率回归分析';
+            userX = data.userInterviewScore;
             break;
         default:
             xData = data.gpa;
             yData = data.offerResult;
-            xLabel = '综合评分';
-            yLabel = 'Offer获取';
+            xLabel = 'GPA';
+            yLabel = 'Offer获取率';
             title = '综合因素 vs Offer获取率回归分析';
+            userX = data.userGPA;
     }
     
     // 归一化x坐标
@@ -1423,32 +1250,85 @@ function drawRegressionChart(data) {
     const xMax = Math.max(...xData);
     const xRange = xMax - xMin || 1;
     
-    // 绘制散点
-    ctx.fillStyle = 'rgba(52, 152, 219, 0.6)';
+    // 计算offer获取率（滑动窗口）
+    const windowSize = 50;
+    const rateData = [];
+    const sortedIndices = xData.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v);
+    
+    for (let i = 0; i < xData.length - windowSize; i++) {
+        const startIdx = sortedIndices[i].i;
+        const endIdx = sortedIndices[i + windowSize].i;
+        let sum = 0;
+        for (let j = i; j <= i + windowSize; j++) {
+            sum += yData[sortedIndices[j].i];
+        }
+        rateData.push({
+            x: xData[sortedIndices[i].i],
+            rate: sum / (windowSize + 1)
+        });
+    }
+    
+    // 绘制平滑的曲线
+    ctx.strokeStyle = 'rgba(52, 152, 219, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    
+    for (let i = 0; i < rateData.length; i++) {
+        const x = padding + ((rateData[i].x - xMin) / xRange) * (width - 2 * padding);
+        const y = height - padding - rateData[i].rate * (height - 2 * padding);
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+    ctx.stroke();
+    
+    // 绘制数据点（散点）
     for (let i = 0; i < xData.length; i++) {
         const x = padding + ((xData[i] - xMin) / xRange) * (width - 2 * padding);
         const y = height - padding - yData[i] * (height - 2 * padding);
+        ctx.fillStyle = 'rgba(52, 152, 219, 0.3)';
         ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.arc(x, y, 2, 0, Math.PI * 2);
         ctx.fill();
     }
     
-    // 计算线性回归
-    const regression = calculateLinearRegression(xData, yData);
-    
-    // 绘制回归线
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    
-    const x1 = padding;
-    const y1 = height - padding - regression.slope * ((xMin) * (height - 2 * padding) / xRange) - regression.intercept * (height - 2 * padding);
-    const x2 = width - padding;
-    const y2 = height - padding - regression.slope * ((xMax) * (height - 2 * padding) / xRange) - regression.intercept * (height - 2 * padding);
-    
-    ctx.moveTo(padding, height - padding - ((regression.slope * xMin + regression.intercept) * (height - 2 * padding)));
-    ctx.lineTo(width - padding, height - padding - ((regression.slope * xMax + regression.intercept) * (height - 2 * padding)));
-    ctx.stroke();
+    // 绘制用户位置标记
+    if (userX !== null) {
+        const userXpct = (userX - xMin) / xRange;
+        const x = padding + userXpct * (width - 2 * padding);
+        
+        // 用户综合得分对应的offer率
+        const userComposite = calculateProfileScore(appState.profile);
+        const userRate = userComposite / 100;
+        const y = height - padding - userRate * (height - 2 * padding);
+        
+        // 绘制用户标记
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // 绘制虚线
+        ctx.strokeStyle = '#e74c3c';
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x, height - padding);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // 标注文字
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('你的位置', x, y - 18);
+    }
     
     // 绘制坐标轴
     ctx.strokeStyle = '#333';
@@ -1476,8 +1356,9 @@ function drawRegressionChart(data) {
     ctx.font = 'bold 16px Arial';
     ctx.fillText(title, width / 2, 25);
     
-    // 更新回归方程显示
-    const equation = `Offer = ${regression.slope.toFixed(4)} × ${xLabel} + ${regression.intercept.toFixed(4)}`;
+    // 计算并显示回归方程
+    const regression = calculateLinearRegression(xData, yData);
+    const equation = `${xLabel}每增加1个单位，Offer获取率${regression.slope > 0 ? '提高' : '降低'}${Math.abs(regression.slope * 100).toFixed(1)}%`;
     document.getElementById('regressionEquation').textContent = equation;
 }
 
@@ -1515,28 +1396,28 @@ function drawOfferRateChart(data) {
     // 清除画布
     ctx.clearRect(0, 0, width, height);
     
-    // 计算各因素区间的Offer率
-    const gpaRanges = [
-        { label: '2.5-2.8', min: 2.5, max: 2.8 },
-        { label: '2.8-3.2', min: 2.8, max: 3.2 },
-        { label: '3.2-3.5', min: 3.2, max: 3.5 },
-        { label: '3.5-3.8', min: 3.5, max: 3.8 },
-        { label: '3.8-4.0', min: 3.8, max: 4.0 }
+    // 计算各因素区间的Offer率 - 使用面试得分分组
+    const scoreRanges = [
+        { label: '40-50', min: 40, max: 50 },
+        { label: '50-60', min: 50, max: 60 },
+        { label: '60-70', min: 60, max: 70 },
+        { label: '70-80', min: 70, max: 80 },
+        { label: '80-100', min: 80, max: 100 }
     ];
     
-    const offerRates = gpaRanges.map(range => {
-        const filtered = data.gpa.map((g, i) => g >= range.min && g < range.max ? data.offerResult[i] : null).filter(v => v !== null);
+    const offerRates = scoreRanges.map(range => {
+        const filtered = data.interviewScore.map((s, i) => s >= range.min && s < range.max ? data.offerResult[i] : null).filter(v => v !== null);
         return filtered.length > 0 ? filtered.reduce((a, b) => a + b, 0) / filtered.length : 0;
     });
     
-    const barWidth = (width - 2 * padding) / offerRates.length - 20;
-    const barSpacing = 20;
+    const barWidth = (width - 2 * padding) / offerRates.length - 30;
+    const barSpacing = 30;
     
     // 绘制标题
     ctx.font = 'bold 14px Arial';
     ctx.fillStyle = '#333';
     ctx.textAlign = 'center';
-    ctx.fillText('不同GPA区间的Offer获取率', width / 2, 25);
+    ctx.fillText('不同面试得分区间的Offer获取率', width / 2, 25);
     
     // 绘制条形
     offerRates.forEach((rate, i) => {
@@ -1555,12 +1436,34 @@ function drawOfferRateChart(data) {
         // 显示百分比
         ctx.fillStyle = '#333';
         ctx.font = 'bold 12px Arial';
-        ctx.fillText(`${(rate * 100).toFixed(1)}%`, x + barWidth / 2, y - 5);
+        ctx.fillText(`${(rate * 100).toFixed(0)}%`, x + barWidth / 2, y - 5);
         
         // 显示标签
         ctx.font = '11px Arial';
-        ctx.fillText(gpaRanges[i].label, x + barWidth / 2, height - padding + 15);
+        ctx.fillText(scoreRanges[i].label, x + barWidth / 2, height - padding + 15);
     });
+    
+    // 绘制用户面试得分标记
+    if (data.userInterviewScore) {
+        // 找到用户所在的区间
+        let userRangeIndex = scoreRanges.findIndex(r => data.userInterviewScore >= r.min && data.userInterviewScore < r.max);
+        if (userRangeIndex === -1) userRangeIndex = scoreRanges.length - 1;
+        
+        const userX = padding + userRangeIndex * (barWidth + barSpacing) + barWidth / 2;
+        
+        ctx.strokeStyle = '#e74c3c';
+        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(userX, padding);
+        ctx.lineTo(userX, height - padding);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = 'bold 11px Arial';
+        ctx.fillText('你的得分', userX, padding - 5);
+    }
     
     // 绘制基线
     ctx.strokeStyle = '#ddd';
@@ -1573,34 +1476,71 @@ function drawOfferRateChart(data) {
 }
 
 function calculateRegressionMetrics(data) {
-    // 计算相关系数
-    const n = data.gpa.length;
+    // 获取分析变量选择
+    const analysisVar = document.getElementById('analysisVariable')?.value || 'combined';
     
-    // GPA vs Offer 相关系数
-    const gpaCorrelation = calculateCorrelation(data.gpa, data.offerResult);
-    document.getElementById('correlationValue').textContent = gpaCorrelation.toFixed(4);
+    let xData;
+    switch(analysisVar) {
+        case 'gpa': xData = data.gpa; break;
+        case 'school': xData = data.schoolTier; break;
+        case 'internship': xData = data.internship; break;
+        default: xData = data.interviewScore;
+    }
+    
+    // 计算相关系数
+    const correlation = calculateCorrelation(xData, data.offerResult);
+    document.getElementById('correlationValue').textContent = correlation.toFixed(4);
     
     // R² 计算
-    const gpaR2 = calculateR2(data.gpa, data.offerResult);
-    document.getElementById('r2Score').textContent = gpaR2.toFixed(4);
+    const r2 = calculateR2(xData, data.offerResult);
+    document.getElementById('r2Score').textContent = r2.toFixed(4);
     
     // RMSE 计算
-    const rmse = calculateRMSE(data.gpa, data.offerResult);
+    const rmse = calculateRMSE(xData, data.offerResult);
     document.getElementById('rmseValue').textContent = rmse.toFixed(4);
     
     // 更新解读
+    const profile = appState.profile;
     let interpretation = '';
     
-    if (gpaCorrelation > 0.5) {
-        interpretation = `GPA与Offer获取呈正相关（r=${gpaCorrelation.toFixed(2)}），GPA越高获得Offer的概率越大。建议保持良好成绩。`;
-    } else if (gpaCorrelation > 0.2) {
-        interpretation = `GPA对Offer有一定正向影响，但不是决定性因素。除GPA外，实习经验、面试表现等也很重要。`;
+    // 基于用户背景给出个性化解读
+    const profileScore = calculateProfileScore(profile);
+    
+    if (profileScore >= 75) {
+        interpretation = '根据你的背景分析，你具备较强的竞争力！';
+    } else if (profileScore >= 60) {
+        interpretation = '你的背景具备一定竞争力，继续保持优势。';
     } else {
-        interpretation = `GPA与Offer获取的相关性较弱。院校背景、实习经历、面试表现等因素可能更重要。`;
+        interpretation = '建议提升面试表现和实习经历以增强竞争力。';
     }
     
-    if (appState.profile.isOverseas) {
-        interpretation += `你的海外院校背景（QS ${appState.profile.qsRank}）对申请有一定加成。`;
+    // 添加具体因素分析
+    const analysisVarText = {
+        'gpa': 'GPA',
+        'school': '院校层次',
+        'internship': '实习经验',
+        'combined': '面试得分'
+    };
+    
+    if (correlation > 0.5) {
+        interpretation += `\n\n${analysisVarText[analysisVar]}与Offer获取呈明显正相关，每提升一个等级，Offer获取率约提高${(Math.abs(correlation) * 15).toFixed(0)}%。`;
+    } else if (correlation > 0.2) {
+        interpretation += `\n\n${analysisVarText[analysisVar]}对Offer获取有一定影响，但不是决定性因素。`;
+    } else {
+        interpretation += `\n\n${analysisVarText[analysisVar]}与Offer获取的相关性较弱，其他因素可能更重要。`;
+    }
+    
+    // 添加院校信息
+    if (profile.isOverseas) {
+        const qsText = {
+            'qs_top10': 'Top 10',
+            'qs_11_50': '11-50',
+            'qs_51_100': '51-100',
+            'qs_101_200': '101-200',
+            'qs_201_500': '201-500',
+            'qs_500_plus': '500+'
+        };
+        interpretation += `\n\n你的海外院校背景（QS ${qsText[profile.schoolTier]}）对申请有显著加成。`;
     }
     
     document.getElementById('interpretationText').textContent = interpretation;
