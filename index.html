@@ -16,11 +16,8 @@
                     <span class="logo-text">offerME</span>
                 </div>
                 <div class="header-actions">
-                    <button class="icon-btn" id="historyBtn">
-                        <span>📊</span>
-                    </button>
-                    <button class="icon-btn" id="profileBtn">
-                        <span>👤</span>
+                    <button class="icon-btn fortune-btn" id="fortuneBtn" onclick="showFortuneModal()">
+                        <span>🔮</span>
                     </button>
                 </div>
             </div>
@@ -345,14 +342,17 @@
                             <div class="metric-box">
                                 <span class="metric-label">R² 决定系数</span>
                                 <span class="metric-value" id="r2Score">--</span>
+                                <span class="metric-desc">模型对数据的解释程度（越接近1越好）</span>
                             </div>
                             <div class="metric-box">
                                 <span class="metric-label">RMSE</span>
                                 <span class="metric-value" id="rmseValue">--</span>
+                                <span class="metric-desc">预测误差（越小越准确）</span>
                             </div>
                             <div class="metric-box">
                                 <span class="metric-label">相关系数</span>
                                 <span class="metric-value" id="correlationValue">--</span>
+                                <span class="metric-desc">变量间相关性（-1到1）</span>
                             </div>
                         </div>
                     </div>
@@ -506,6 +506,35 @@
                     <button class="action-btn secondary" onclick="closeInterviewModal()">取消</button>
                     <button class="action-btn primary" onclick="saveInterview()">保存记录</button>
                 </div>
+            </div>
+        </div>
+
+        <!-- Fortune Modal -->
+        <div class="modal" id="fortuneModal">
+            <div class="fortune-modal-content">
+                <button class="close-btn" onclick="closeFortuneModal()">✕</button>
+                <div class="fortune-header">
+                    <div class="fortune-mascot">🐱</div>
+                    <h2>每日求签</h2>
+                    <p class="fortune-subtitle">小喵为你指点迷津~</p>
+                </div>
+                <div id="fortuneResult" class="fortune-result hidden">
+                    <div class="fortune-sticks">
+                        <span class="fortune-stick">📿</span>
+                        <span class="fortune-stick">📿</span>
+                        <span class="fortune-stick">📿</span>
+                    </div>
+                    <div class="fortune-luck" id="fortuneLuck">大吉</div>
+                    <div class="fortune-message" id="fortuneMessage"></div>
+                    <div class="fortune-tips" id="fortuneTips"></div>
+                </div>
+                <button class="action-btn primary fortune-btn" onclick="drawFortune()">
+                    <span class="btn-icon">🎋</span>
+                    <span>摇一摇求签</span>
+                </button>
+                <button class="action-btn secondary hidden" id="tryAgainBtn" onclick="drawFortune()">
+                    再求一次
+                </button>
             </div>
         </div>
 
