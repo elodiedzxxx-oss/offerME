@@ -583,13 +583,17 @@ function predictOffers() {
     // 综合得分
     const compositeScore = profileScore * 0.3 + interviewAvgScore * 0.7;
     
-    // 预测offer数量
-    const baseOffers = Math.floor(compositeScore / 25);
-    const variance = Math.random() * 0.4 - 0.2; // -0.2 到 +0.2
-    const predictedOffers = Math.max(1, Math.min(10, Math.round(baseOffers * (1 + variance))));
+    // 统计投递的公司/岗位组合数量
+    const uniqueApplications = new Set();
+    interviews.forEach(interview => {
+        uniqueApplications.add(`${interview.companyName}|${interview.positionName}`);
+    });
+    const totalApplications = uniqueApplications.size;
     
-    // 计算各公司offer概率
+    // 预测offer数量 - 基于投递公司数 * 各公司概率
     const companyPredictions = calculateCompanyPredictions(profile, interviews, compositeScore);
+    const totalOffers = Math.round(companyPredictions.reduce((sum, p) => sum + p.probability / 100, 0));
+    const predictedOffers = Math.max(0, Math.min(totalApplications, totalOffers));
     
     // 生成分析
     const analysis = generateAnalysis(profile, interviews, compositeScore);
@@ -671,20 +675,30 @@ function calculateCompanyPredictions(profile, interviews, compositeScore) {
         // 获取最高轮次
         const maxRound = Math.max(...samePositionInterviews.map(i => i.round));
         
-        // 计算概率
-        const scoreFactor = avgScore / 100;
-        const profileFactor = calculateProfileScore(profile) / 100;
-        const combinedFactor = (scoreFactor * 0.6 + profileFactor * 0.4);
+        // 计算概率 - 更现实的算法
+        // 基准概率：基于面试表现 * 背景
+        const scoreFactor = (avgScore - 50) / 50; // -1 to 1
+        const profileFactor = (calculateProfileScore(profile) - 50) / 50; // -1 to 1
         
-        // 根据面试轮次调整（进入越后面轮次，概率越高）
-        const roundBonus = maxRound >= 4 ? 0.15 : maxRound >= 3 ? 0.1 : maxRound >= 2 ? 0.05 : 0;
+        // 综合因素（面试表现权重更高）
+        let baseProbability = 0.3 + scoreFactor * 0.25 + profileFactor * 0.15;
         
-        // 轮次越多，基础概率越高
-        const roundProgressBonus = Math.min(maxRound * 0.03, 0.12);
+        // 轮次加成：进入越后面轮次，概率越高
+        const roundBonus = maxRound >= 4 ? 0.15 : maxRound >= 3 ? 0.08 : maxRound >= 2 ? 0.03 : 0;
         
-        const probability = Math.min(0.95, Math.max(0.05, 
-            combinedFactor + roundBonus + roundProgressBonus - 0.15
-        ));
+        // 整体难度加成：难度高但表现好，说明能力强
+        const avgDifficulty = samePositionInterviews.reduce((sum, i) => sum + i.difficulty, 0) / samePositionInterviews.length;
+        const difficultyBonus = avgDifficulty > 3 && avgScore > 70 ? 0.05 : 0;
+        
+        // 计算最终概率
+        let probability = baseProbability + roundBonus + difficultyBonus;
+        
+        // 添加随机波动（±10%）
+        const variance = (Math.random() - 0.5) * 0.1;
+        probability = probability + variance;
+        
+        // 限制在合理范围
+        probability = Math.min(0.75, Math.max(0.05, probability));
         
         predictions.push({
             companyName: interview.companyName,
@@ -693,7 +707,7 @@ function calculateCompanyPredictions(profile, interviews, compositeScore) {
             maxRound: maxRound,
             avgScore: Math.round(avgScore),
             probability: Math.round(probability * 100),
-            status: probability >= 0.6 ? 'high' : probability >= 0.35 ? 'medium' : 'low'
+            status: probability >= 0.5 ? 'high' : probability >= 0.3 ? 'medium' : 'low'
         });
     });
     
