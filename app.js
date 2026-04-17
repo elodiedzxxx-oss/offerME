@@ -1661,3 +1661,87 @@ startNew = function() {
     appState.profile.qsRank = null;
     appState.profile.isOverseas = false;
 };
+
+// ========== 每日求签功能 ==========
+
+const fortuneData = [
+    { luck: '大吉', messages: [
+        '今日运势极佳！面试官对你印象分爆棚，拿下offer不在话下！',
+        '鸿运当头，面试如有神助，准备充分就是你的必杀技！'
+    ], tips: '把握机会，今日适合冲刺！' },
+    { luck: '吉', messages: [
+        '整体运势不错，保持稳定发挥就能稳操胜券~',
+        '小吉星高照，细节决定成败，注意面试礼仪哦！'
+    ], tips: '稳扎稳打，注意细节' },
+    { luck: '中吉', messages: [
+        '运气中上水平，稍微努力一下就能脱颖而出！',
+        '今日表现机会不错，抓住每一个展示自己的机会。'
+    ], tips: '积极表现，主动沟通' },
+    { luck: '小吉', messages: [
+        '平平稳稳的一天，保持平常心最重要~',
+        '运气一般，但你的实力可以弥补！'
+    ], tips: '放平心态，相信自己' },
+    { luck: '平', messages: [
+        '今日较为平淡，可能需要更多耐心等待好消息~',
+        '机会稍纵即逝，要更加主动才能把握住！'
+    ], tips: '耐心等待，积极准备' },
+    { luck: '末吉', messages: [
+        '今日稍显波折，但不要灰心，结局会是好的！',
+        '可能会有一些小挫折，但这是成长的一部分~'
+    ], tips: '保持乐观，积累经验' }
+];
+
+function showFortuneModal() {
+    const modal = document.getElementById('fortuneModal');
+    modal.classList.add('active');
+    
+    // 重置状态
+    document.getElementById('fortuneResult').classList.add('hidden');
+    document.querySelector('#fortuneModal .fortune-btn').classList.remove('hidden');
+    document.getElementById('tryAgainBtn').classList.add('hidden');
+}
+
+function closeFortuneModal() {
+    document.getElementById('fortuneModal').classList.remove('active');
+}
+
+function drawFortune() {
+    // 随机选择运势
+    const weights = [0.1, 0.2, 0.25, 0.2, 0.15, 0.1]; // 大吉概率较低
+    const random = Math.random();
+    let cumulative = 0;
+    let fortuneIndex = 0;
+    
+    for (let i = 0; i < weights.length; i++) {
+        cumulative += weights[i];
+        if (random < cumulative) {
+            fortuneIndex = i;
+            break;
+        }
+    }
+    
+    const fortune = fortuneData[fortuneIndex];
+    const message = fortune.messages[Math.floor(Math.random() * fortune.messages.length)];
+    
+    // 显示结果
+    const resultDiv = document.getElementById('fortuneResult');
+    resultDiv.classList.remove('hidden');
+    
+    document.getElementById('fortuneLuck').textContent = fortune.luck;
+    document.getElementById('fortuneMessage').textContent = message;
+    document.getElementById('fortuneTips').innerHTML = `<strong>💡 小喵提示</strong>${fortune.tips}`;
+    
+    // 隐藏求签按钮，显示再求一次
+    document.querySelector('#fortuneModal .fortune-btn').classList.add('hidden');
+    document.getElementById('tryAgainBtn').classList.remove('hidden');
+}
+
+// 模态框点击外部关闭
+document.addEventListener('DOMContentLoaded', () => {
+    const fortuneModal = document.getElementById('fortuneModal');
+    fortuneModal.addEventListener('click', (e) => {
+        if (e.target === fortuneModal) {
+            closeFortuneModal();
+        }
+    });
+});
